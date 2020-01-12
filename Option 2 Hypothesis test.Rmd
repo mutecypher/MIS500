@@ -1,4 +1,9 @@
 ---
+output:
+  pdf_document: default
+  html_document: default
+---
+---
 title: "Hypothesis tests"
 output: html_notebook
 # R Hypothesis Tests
@@ -7,9 +12,9 @@ install.packages("dplyr")
 
  
 
-tScore_before <- c(40, 62, 74, 22, 64, 65, 49, 49, 49)
+tScore_before <- c(123, 135, 129, 117, 120, 138, 140, 145, 136, 140, 146, 137)
 
-tScore_after <- c(68, 61, 64, 76, 90, 75, 66, 60, 63)
+tScore_after <- c(133, 136, 135, 137, 142, 135, 121, 147, 168, 152,  129, 145)
 
 # Create a data frame
 
