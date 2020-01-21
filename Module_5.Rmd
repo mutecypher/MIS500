@@ -1,0 +1,102 @@
+---
+title: "Module 5"
+author: "Michael Pearson"
+date: "1/17/2020"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r eval = TRUE}
+## Set up a temporary file name for the downloaded zip file
+
+temp <- tempfile()
+
+download.file("http://archive.ics.uci.edu/ml/machine-learning-databases/00503/HCV-Egy-Data.zip", temp)
+
+## unzip the downloaded file, see what the name of the csv is
+tried <- unzip(temp)
+
+tried
+
+## Read the csv file that has been unzipped
+
+catz <- read.csv("./HCV-Egy-Data.csv", header = TRUE)
+
+
+## show the head of the data
+
+head(catz)
+
+
+## Now convert to a data table so that the genders can be broken out into separate tables for analysis
+
+library(data.table)
+catz <- data.table(catz)
+setkey(catz, Gender)
+males <- catz[Gender == 1]
+females <- catz[Gender == 2]
+
+
+## Compare the means of the samples for age, BMI, red blood count, hemoglobin, and AST1 and ALT1 by gender
+
+
+## Age Comparison
+age_test <- t.test(males$Age, females$Age, conf.level = 0.95)
+
+print(age_test)
+
+## BMI comparison
+
+
+BMI_test <- t.test(males$BMI, females$BMI, conf.level = 0.95)
+
+print(BMI_test)
+
+
+## red blood cell count comparison
+
+
+RBC_test <- t.test(males$RBC, females$RBC, conf.level = 0.95)
+
+print(RBC_test)
+
+## hemoglobin comparison
+
+
+HGB_test <- t.test(males$HGB, females$HGB, conf.level = 0.95)
+
+print(HGB_test)
+
+##  the aspartate transaminase ratio on the first day of observation comparison
+
+
+AST1_test <- t.test(males$AST.1, females$AST.1, conf.level = 0.95)
+
+print(AST1_test)
+
+## The alanine transaminase ratio on the first day of observation comparison
+
+
+AST1_test <- t.test(males$ALT.1, females$ALT.1, conf.level = 0.95)
+
+
+print(AST1_test)
+
+
+## And let's see if there was a gender difference in the opening histology
+
+
+whiz <- table(catz$Gender, catz$Baselinehistological.staging)
+
+print(whiz)
+whizzy <- chisq.test(whiz)
+
+print(whizzy)
+```
+
+

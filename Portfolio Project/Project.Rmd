@@ -7,25 +7,75 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-diabetes_data <- read.csv("/Users/mutecypher/Documents/CSU Global Masters/MIS500 Foundations of Data Analytics/Data for Capstone/diabetic_data.csv", header = TRUE)
+
+## Connect to the page and download the zipped files
+
+temp <- tempfile()
+
+download.file("https://archive.ics.uci.edu/ml/machine-learning-databases/00296/dataset_diabetes.zip", temp)
+
+post_zipped <- unzip(temp)
+
+post_zipped
+
+
+
+diabetes_data <- read.csv("./dataset_diabetes/diabetic_data.csv", header = TRUE)
+
+head(diabetes_data)
+
+## Convert to a data table for easier subsetting
+
+## Now convert to a data table so that the genders can be broken out into separate tables for analysis
+
+library(data.table)
+diabetes_data <- data.table(diabetes_data)
+setkey(diabetes_data, gender)
+males <- diabetes_data["Male"]
+females <- diabetes_data["Female"]
+setkey(diabetes_data, readmitted)
+nope <- diabetes_data["NO"]
+more_than_30 <- diabetes_data[">30"]
+less_than_30 <- diabetes_data["<30"]
+
+setkey(nope, gender)
+male_nope <- nope["Male"]
+female_nope <- nope["Female"]
+setkey(more_than_30, gender)
+male_more_than_30 <- more_than_30["Male"]
+female_more_than_30 <- more_than_30["Female"]
+setkey(less_than_30, gender)
+male_less_than_30 <- less_than_30["Male"]
+female_less_than_30 <- less_than_30["Female"]
+
+
+## Or another way
+
+gender_test <- table(diabetes_data$gender, diabetes_data$readmitted)
+
+race_test <- table(diabetes_data$race, )
+
+
+## Removing patients with multiple admissions
+
+diabetes_data$duplicates <- duplicated(diabetes_data$patient_nbr)
+
+
+## Patients numbers only once (may have been readmitted)
+
+
+
+No_duplicated_data <- diabetes_data[diabetes_data$duplicates =="FALSE"]
+
+
+## Patient numbers used more than once
+
+
+Back_again <- diabetes_data[diabetes_data$duplicates =="TRUE"]
+
+
+
+
+
 ```
 
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
