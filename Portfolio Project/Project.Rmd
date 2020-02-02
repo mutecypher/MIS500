@@ -1,13 +1,20 @@
 ---
-title: "Practice Porfolio"
+title: "MIS 500 Porfolio"
 author: "Michael Pearson"
-date: "1/13/2020"
-output: pdf_document
+date: "1/27/2020"
+output:
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+```
+
+This is some stuff to get writing going
+
+``` {r data analysis}
 ## Connect to the page and download the zipped files
 
 temp <- tempfile()
@@ -16,13 +23,13 @@ download.file("https://archive.ics.uci.edu/ml/machine-learning-databases/00296/d
 
 post_zipped <- unzip(temp)
 
-post_zipped
+print(post_zipped)
 
 
 
 diabetes_data <- read.csv("./dataset_diabetes/diabetic_data.csv", header = TRUE)
 
-head(diabetes_data)
+print(head(diabetes_data))
 
 ## Convert to a data table for easier subsetting
 
@@ -50,32 +57,145 @@ female_less_than_30 <- less_than_30["Female"]
 
 
 ## Or another way
+## For all data, Chi-Square of readamission versus gender
 
 gender_test <- table(diabetes_data$gender, diabetes_data$readmitted)
 
-race_test <- table(diabetes_data$race, )
+gender_test <- gender_test[1:2,]
+
+all_data_gender <- chisq.test(gender_test)
+
+print(all_data_gender)
+
+## now, summarize the data
+
+weight_all = summary(diabetes_data$weight)
+print(weight_all)
 
 
-## Removing patients with multiple admissions
+## For all data, Chi-Square for  race versus admission data
 
-diabetes_data$duplicates <- duplicated(diabetes_data$patient_nbr)
+
+race_test <- table(diabetes_data$race, diabetes_data$readmitted)
+
+race_test <- race_test[1:5,]
+
+all_data_race <- chisq.test(race_test)
+
+print(all_data_race)
+
+
+## For all data, Chi-square for age versus readmission data
+
+
+age_test <- table(diabetes_data$age, diabetes_data$readmitted)
+
+age_test <- age_test[2:10,]
+
+all_data_age <- chisq.test(age_test)
+
+print(all_data_age)
+
+
+
+## Evaluate only patients with multiple encounter IDs
+
+
+Dupe_diabetes_data <- diabetes_data[diabetes_data$patient_nbr %in% names(which(table(diabetes_data$patient_nbr)>1)),]
+
+## Duplicate patient ID, chi-square of  gender versus readmission
+
+
+dupe_gender_table <- table(Dupe_diabetes_data$gender, Dupe_diabetes_data$readmitted)
+
+dupe_gender_table <- dupe_gender_table[1:2,]
+
+dupes_gender_test <- chisq.test(dupe_gender_table)
+
+print(dupes_gender_test)
+
+## Duplicate patient ID, chi-square of race versus readmission
+
+dupes_race_table <- table(Dupe_diabetes_data$race, Dupe_diabetes_data$readmitted)
+
+## Remove the unknown races
+
+dupes_race_table <- dupes_race_table[2:5,]
+
+dupes_race_test <- chisq.test(dupes_race_table)
+
+print(dupes_race_test)
+
+## Duplicate patient ID, chi-square of age versus readmission
+
+dupe_age_table <- table(Dupe_diabetes_data$age, Dupe_diabetes_data$readmitted)
+
+dupe_age_table <- dupe_age_table[2:10,]
+
+dupe_age_test <- chisq.test(dupe_age_table)
+
+print(dupe_age_test)
 
 
 ## Patients numbers only once (may have been readmitted)
 
+No_duplicated_data <- diabetes_data[diabetes_data$patient_nbr %in% names(which(table(diabetes_data$patient_nbr)==1)),]
 
 
-No_duplicated_data <- diabetes_data[diabetes_data$duplicates =="FALSE"]
+gender_nodupes_table <- table(No_duplicated_data$gender, No_duplicated_data$readmitted)
+
+gender_nodupes_table <- gender_nodupes_table[1:2,]
+
+gender_nodupes_test <- chisq.test(gender_nodupes_table)
+
+print(gender_nodupes_test)
+
+##  Now the race data
+
+race_nodupes_table <- table(No_duplicated_data$race, No_duplicated_data$readmitted)
+
+race_nodupes_table <- race_nodupes_table[2:5,]
+
+race_nodupes_test <- chisq.test(race_nodupes_table)
+
+print(race_nodupes_test)
+
+##  Now for the age data
+
+age_nodupes_table <- table(No_duplicated_data$age, No_duplicated_data$readmitted)
+
+age_nodupes_table <- age_nodupes_table[2:10,]
+
+age_nodupes_test <- chisq.test(age_nodupes_table)
+
+print(age_nodupes_test)
+
+##  Some plots
+
+library(ggplot2)
+
+## remove ? for race
+
+No_duplicated_data_noq <- No_duplicated_data[No_duplicated_data$race != "?"]
+No_duplicated_data_noq <- No_duplicated_data_noq[No_duplicated_data_noq$race != "Other"]
 
 
-## Patient numbers used more than once
+No_duplicated_data_noq <- No_duplicated_data_noq[No_duplicated_data_noq$gender != "Unknown/Invalid"]
+
+##histo_race <- ggplot(No_duplicated_data_noq, aes(race)) + geom_histogram()
+
+##print(histo_race)
+
+##No_duplicated_data_noq <- No_duplicated_data_noq[No_duplicated_data_noq$gender != "Unknown/Invalid"]
+
+##histo_gender <- ggplot(No_duplicated_data_noq, aes(gender)) + geom_histogram()
+
+##print(histo_gender)
 
 
-Back_again <- diabetes_data[diabetes_data$duplicates =="TRUE"]
+##histo_age <- ggplot(No_duplicated_data_noq, aes(age)) + geom_histogram()
 
-
-
+##print(histo_age)
 
 
 ```
-
