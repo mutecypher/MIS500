@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This is some stuff to get writing going
 
-``` {r data analysis}
+``` {r data analysis, eval = TRUE}
 ## Connect to the page and download the zipped files
 
 temp <- tempfile()
@@ -23,13 +23,13 @@ download.file("https://archive.ics.uci.edu/ml/machine-learning-databases/00296/d
 
 post_zipped <- unzip(temp)
 
-print(post_zipped)
+##print(post_zipped)
 
 
 
 diabetes_data <- read.csv("./dataset_diabetes/diabetic_data.csv", header = TRUE)
 
-print(head(diabetes_data))
+##print(head(diabetes_data))
 
 ## Convert to a data table for easier subsetting
 
@@ -39,41 +39,101 @@ library(data.table)
 library(reshape2)
 library(dplyr)
 library(ggplot2)
-##diabetes_data <- data.table(diabetes_data)
-##setkey(diabetes_data, gender)
-##males <- diabetes_data["Male"]
-##females <- diabetes_data["Female"]
-##setkey(diabetes_data, readmitted)
-##more_than_30 <- diabetes_data[">30"]
-##less_than_30 <- diabetes_data["<30"]
+library(vcd)
+library(ggpubr)
 
-##nope <- diabetes_data["NO"]
-##setkey(nope, gender)
-##male_nope <- nope["Male"]
-##female_nope <- nope["Female"]
-##setkey(more_than_30, gender)
-##male_more_than_30 <- more_than_30["Male"]
-##female_more_than_30 <- more_than_30["Female"]
-##setkey(less_than_30, gender)
-##male_less_than_30 <- less_than_30["Male"]
-##female_less_than_30 <- less_than_30["Female"]
 
+##print(summary(diabetes_data))
+```
+
+Now for some tablature 
 ## For plotting
+
+## Some stats about the data
+```{r bunch of tables, eval =TRUE, include = TRUE}
+table(diabetes_data$gender)
+
+table(diabetes_data$race)
+
+table(diabetes_data$weight)
+
+table(diabetes_data$time_in_hospital)
+
+table(diabetes_data$num_lab_procedures)
+
+table(diabetes_data$num_procedures)
+
+table(diabetes_data$readmitted)
+
+table(diabetes_data$diabetesMed)
+
+table(diabetes_data$change)
+
+table(diabetes_data$insulin)
+
+
+table(diabetes_data$insulin)
+
+table(diabetes_data$examide)
+
+table(diabetes_data$num_medications)
+
+table(diabetes_data$number_outpatient)
+
+table(diabetes_data$number_emergency)
+
+table(diabetes_data$max_glu_serum)
+
+table(diabetes_data$A1Cresult)
+
+table(diabetes_data$number_inpatient)
+
+table(diabetes_data$number_diagnoses)
+
+table(diabetes_data$age)
+
+length(unique(diabetes_data$patient_nbr))
+```
+This section is where we will check out the full data set
+
+```{r Full Data Set, eval = TRUE}
+
 gender_readmit <- diabetes_data[, c(4,50)]
 
 try <- table(gender_readmit)
 gender_readmit_table <- try[1:2,]
 colnames(gender_readmit_table) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
+
+print(gender_readmit_table)
+
+## CHI SQUARE GENDER FOR FULL TABLE
+
+
+chisq.test(gender_readmit_table)
+
+assocstats(gender_readmit_table)
+
 colors <- c("red", "blue")
 barplot(gender_readmit_table, main = "Readmissions by Gender", ylab = "Total", beside = TRUE, col = colors)
 legend("topleft", c("female", "male"), fill = colors)
 try1 <- data.table(gender_readmit_table)
 
-ggplot(try1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = gender, cumulative = TRUE)) + geom_col()
+p <- ggplot(try1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = gender, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Readmission status by Gender", subtitle = "From full data set")
+p1 <- p + ylab("Number of patients") + xlab("Status")
 
-ggplot(try1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
+p1
+
+q <- ggplot(try1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
  geom_text(aes(label = paste0(perc*100,"%")), 
               position = position_stack(vjust = 0.5))
+q <- q + labs(title = "Readmission status by Gender Percentage", subtitle = "From full data set")
+q1 <- q + ylab("Percent by gender") + xlab("status")
+q1
+
+##ggarrange(p, q, ncol = 2, nrow = 1)
+
+##ggarrange(p, q, ncol = 1, row = 2)
 
 race_readmit <- diabetes_data[, c(3,50)]
 
@@ -81,52 +141,108 @@ race_readmit_table <- table(race_readmit)
 race_readmit_table <- race_readmit_table[2:5,]
 colnames(race_readmit_table) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
 rcolors <- c("red", "blue", "green", "yellow")
+
+print(race_readmit_table)
+##  CHI SQUARE FOR RACE FULL DATA
+
+chisq.test(race_readmit_table)
+
+assocstats(race_readmit_table)
+
 barplot(race_readmit_table, main = "Readmission by Race", ylab = "Total", beside = TRUE, col = rcolors)
 legend("topleft", legend = c("african/american", "Asian", "Caucasian", "Hispanic"), fill = rcolors)
 
 race_readmit_table_1 <- data.table(race_readmit_table)
 
-ggplot(race_readmit_table_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = race, cumulative = TRUE)) + geom_col()
+p <- ggplot(race_readmit_table_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = race, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Readmission status by Race", subtitle = "From full data set")
+p2 <- p + ylab("Number of patients") + xlab("Status")
+p2
 
-ggplot(race_readmit_table_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = race, cumulative = TRUE)) + geom_col() +
+q <- ggplot(race_readmit_table_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = race, cumulative = TRUE)) + geom_col() +
  geom_text(aes(label = paste0(perc*100,"%")), 
               position = position_stack(vjust = 0.5))
-
+q <- q + labs(title = "Readmission status by Race -  Percentage", subtitle = "From full data set")
+q2 <- q + ylab("Percent by Race") + xlab("status")
+q2
 
 age_readmit <- diabetes_data[, c(5,50)]
 age_readmit_table <- table(age_readmit)
 colnames(age_readmit_table) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
-par(mfrow=c(1, 1), mar=c(5, 5, 4, 8))
+
+print(age_readmit_table)
+
+
+chisq.test(age_readmit_table)
+
+assocstats(age_readmit_table)
+
 barplot(age_readmit_table, main = "Readmission by Age", ylab="age", legend.text = TRUE, beside = TRUE, col = rainbow(3),args.legend = list(x = "topright", bty = "n", inset=c(-0.5, 0)))
 
 age_readmit_table_1 <- data.table(age_readmit_table)
-ggplot(age_readmit_table_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = age, cumulative = TRUE)) + geom_col()
+p <- ggplot(age_readmit_table_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = age, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Readmission status by Age", subtitle = "From full data set")
+p3 <- p + ylab("Number of patients") + xlab("status")
+p3
 
-ggplot(age_readmit_table_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = age, cumulative = TRUE)) + geom_col() +
+q <- ggplot(age_readmit_table_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = age, cumulative = TRUE)) + geom_col() +
  geom_text(aes(label = paste0(perc*100,"%")), 
-              position = position_stack(vjust = 0.5))
+              position = position_stack(vjust = 0.5), check_overlap = TRUE)
+q <- q + labs(title = "Readmission status by age Percentage", subtitle = "From full data set")
+q3 <- q + ylab("Percent by age") + xlab("status")
+q3
 
+## ggarrange(p1, q1, p2, q2, p3, q3, heights = c(2,2,2,2,2,2), nrow = 3, ncol = 2)
+```
+
+Test Changes
+
+```{r Changes, eval=TRUE, include = TRUE}
 changes <- table(diabetes_data$change, diabetes_data$readmitted)
 colnames(changes) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
+
+chisq.test(changes)
+
+assocstats(changes)
+
+
 changes_1 <- data.table(changes)
 colnames(changes_1) <- c("ChangedMeds", "readmitted", "N")
-ggplot(changes_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = ChangedMeds, cumulative = TRUE)) + geom_col()
+p <- ggplot(changes_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = ChangedMeds, cumulative = TRUE)) + geom_col()
 
-ggplot(changes_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = ChangedMeds, cumulative = TRUE)) + geom_col() +
+p <- p + labs(title = "Readmission status by Change of Meds", subtitle  = "From full data set")
+p <- p + ylab("Number of patients") + xlab("status")
+p
+
+q <- ggplot(changes_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = ChangedMeds, cumulative = TRUE)) + geom_col() +
  geom_text(aes(label = paste0(perc*100,"%")), 
-              position = position_stack(vjust = 0.5))
+              position = position_stack(vjust = 0.5),,check_overlap = TRUE)
+q <- q + labs(title = "Readmission status by Change of Meds Percentage", subtitle = "From full data set")
+q <- q + ylab("Percentage") + xlab("status")
+q
+
+changy <- diabetes_data[diabetes_data$change == "Ch",]
+table
+```
+
 ## Or another way
 ## For all data, Chi-Square of readamission versus gender
 
+```{r Alternative full set, eval =FALSE, include = FALSE}
 gender_test <- table(diabetes_data$gender, diabetes_data$readmitted)
 
 gender_test <- gender_test[1:2,]
 
-all_data_gender <- chisq.test(gender_test)
+chisq.test(gender_test)
+
+assocstats(gender_test)
+
+
+all_data_gender <- assocstats(gender_test)
 
 print(all_data_gender)
 
-changed_meds_test <- chisq.test(changes)
+changed_meds_test <- assocstats(changes)
 
 print(changed_meds_test)
 
@@ -134,13 +250,12 @@ gender_changes <- table(diabetes_data$gender, diabetes_data$change)
 
 print(changed_meds_test)
 
-print(chisq.test(gender_changes))
+print(assocstats(gender_changes))
 ## now, summarize the data
 
 weight_all = summary(diabetes_data$weight)
 print(weight_all)
 
-print(chisq.test(weight_all))
 
 yup <- table(diabetes_data$patient_nbr)
 
@@ -152,7 +267,7 @@ race_test <- table(diabetes_data$race, diabetes_data$readmitted)
 
 race_test <- race_test[1:5,]
 
-all_data_race <- chisq.test(race_test)
+all_data_race <- assocstats(race_test)
 
 print(all_data_race)
 
@@ -160,18 +275,25 @@ print(all_data_race)
 ## For all data, Chi-square for age versus readmission data
 
 
-age_test <- table(diabetes_data$age, diabetes_data$readmitted)
+age_table <- table(diabetes_data$age, diabetes_data$readmitted)
 
-age_test <- age_test[2:10,]
-
-all_data_age <- chisq.test(age_test)
-
-print(all_data_age)
+print(age_table)
 
 
+age_table <- age_table[2:10,]
 
+chisq.test(age_table)
+
+
+age_test <- assocstats(age_table)
+
+print(age_test)
+
+
+```
 ## Evaluate only patients with multiple encounter IDs
 
+```{r Multiple, eval = TRUE}
 
 Dupe_diabetes_data <- diabetes_data[diabetes_data$patient_nbr %in% names(which(table(diabetes_data$patient_nbr)>1)),]
 
@@ -180,104 +302,338 @@ Dupe_diabetes_data <- diabetes_data[diabetes_data$patient_nbr %in% names(which(t
 
 dupes_gender_table <- table(Dupe_diabetes_data$gender, Dupe_diabetes_data$readmitted)
 
-dupes_gender_table <- dupes_gender_table[1:2,]
 
-dupes_gender_test <- chisq.test(dupes_gender_table)
+dupes_gender_table <- dupes_gender_table[1:2,]
+colnames(dupes_gender_table) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
+
+print(dupes_gender_table)
+
+dupes_gender_test <- assocstats(dupes_gender_table)
+
+chisq.test(dupes_gender_table)
+
+assocstats(dupes_gender_table)
 
 print(dupes_gender_test)
 
 dupes_gender_test_1 <- data.table(dupes_gender_table)
 
 colnames(dupes_gender_test_1) <- c("gender", "readmitted", "N")
-ggplot(dupes_gender_test_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = gender, cumulative = TRUE)) + geom_col()
+p <- ggplot(dupes_gender_test_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = gender, cumulative = TRUE)) + geom_col()
 
-ggplot(dupes_gender_test_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
+p <- p + labs(title = "Readmission status by Gender", subtitle =  "From multiple admisions data set")
+p <- p + ylab("Number of patients") + xlab("Status")
+p
+
+p <- ggplot(dupes_gender_test_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
  geom_text(aes(label = paste0(perc*100,"%")), 
               position = position_stack(vjust = 0.5))
+
+p <- p + labs(title = "Readmission status by Gender Percentage",  subtitle =  "From multiple admisions data set")
+p <- p + ylab("Percentage of patients") + xlab("Status")
+p
 
 ## Duplicate patient ID, chi-square of race versus readmission
 
 dupes_race_table <- table(Dupe_diabetes_data$race, Dupe_diabetes_data$readmitted)
 
+
 ## Remove the unknown races
 
 dupes_race_table <- dupes_race_table[2:5,]
+colnames(dupes_race_table) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
 
-dupes_race_test <- chisq.test(dupes_race_table)
+print(dupes_race_table)
+
+dupes_race_test <- assocstats(dupes_race_table)
 
 print(dupes_race_test)
 
 dupes_race_test_1 <- data.table(dupes_race_table)
 
 colnames(dupes_race_test_1) <- c("race", "readmitted", "N")
-ggplot(dupes_race_test_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = race, cumulative = TRUE)) + geom_col()
 
-ggplot(dupes_race_test_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = race, cumulative = TRUE)) + geom_col() +
+p <- ggplot(dupes_race_test_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = race, cumulative = TRUE)) + geom_col()
+
+p <- p + labs(title = "Readmission status by Race",  subtitle =  "From multiple admisions data set")
+p <- p + ylab("Number of patients") + xlab("Status")
+p
+
+p <- ggplot(dupes_race_test_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = race, cumulative = TRUE)) + geom_col() +
  geom_text(aes(label = paste0(perc*100,"%")), 
               position = position_stack(vjust = 0.5))
+p <- p + labs(title = "Readmission status by Race Percentage",  subtitle =  "From multiple admisions data set")
+p <- p + ylab("Percentage of patients") + xlab("Status")
+p
 
 ## Duplicate patient ID, chi-square of age versus readmission
 
 dupe_age_table <- table(Dupe_diabetes_data$age, Dupe_diabetes_data$readmitted)
 
+
+print(dupe_age_table)
+
 dupe_age_table <- dupe_age_table[2:10,]
 
-dupe_age_test <- chisq.test(dupe_age_table)
+colnames(dupe_age_table) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
+
+dupe_age_test <- assocstats(dupe_age_table)
 
 print(dupe_age_test)
 
 dupe_age_test_1 <- data.table(dupe_age_table)
 colnames(dupe_age_test_1) <- c("age", "readmitted", "N")
-ggplot(dupe_age_test_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = age, cumulative = TRUE)) + geom_col()
+p <- ggplot(dupe_age_test_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = age, cumulative = TRUE)) + geom_col()
 
-ggplot(dupe_age_test_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = age, cumulative = TRUE)) + geom_col() +
+p <- p + labs(title = "Readmission status by Age", subtitle = "From multiple addmission data set")
+p <- p + ylab("Number of patients") + xlab("Status")
+
+p <- ggplot(dupe_age_test_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = age, cumulative = TRUE)) + geom_col() +
  geom_text(aes(label = paste0(perc*100,"%")), 
-              position = position_stack(vjust = 0.5))
+              position = position_stack(vjust = 0.5),,check_overlap = TRUE)
 
+p <- p + labs(title = "Readmission status by Race Percentage", subtitle = "From multiple addmission data set")
+p <- p + ylab("Percentage of patients") + xlab("Status")
 
+p
+```
 ## Patients numbers only once (may have been readmitted)
 
+
+```{r Single include, eval = TRUE}
 No_duplicated_data <- diabetes_data[diabetes_data$patient_nbr %in% names(which(table(diabetes_data$patient_nbr)==1)),]
 
-print(head(No_duplicated_data))
+##print(head(No_duplicated_data))
 
 gender_nodupes_table <- table(No_duplicated_data$gender, No_duplicated_data$readmitted)
 
+colnames(gender_nodupes_table) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
+
+
 gender_nodupes_table <- gender_nodupes_table[1:2,]
 
-gender_nodupes_test <- chisq.test(gender_nodupes_table)
+
+print(gender_nodupes_table)
+
+gender_nodupes_test <- assocstats(gender_nodupes_table)
 
 print(gender_nodupes_test)
+
+gender_nodupes_table_1 <- data.table(gender_nodupes_table)
+colnames(gender_nodupes_table_1) <- c("gender", "readmitted", "N")
+p <- ggplot(gender_nodupes_table_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = gender, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Readmission status by Gender", subtitle = "From single admission data set")
+p <- p + ylab("Number of patients") + xlab("Status")
+p
+
+p  <- ggplot(gender_nodupes_table_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
+ geom_text(aes(label = paste0(perc*100,"%")), 
+              position = position_stack(vjust = 0.5))
+p <- p + labs(title = "Readmission status by Gender Percentage", subtitle = "From single admission data set")
+p <- p + ylab("Percentage of patients") + xlab("Status")
+
+p
 
 ##  Now the race data
 
 race_nodupes_table <- table(No_duplicated_data$race, No_duplicated_data$readmitted)
 
+colnames(race_nodupes_table ) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
+
+
 race_nodupes_table <- race_nodupes_table[2:5,]
 
-race_nodupes_test <- chisq.test(race_nodupes_table)
+print(race_nodupes_table)
+
+race_nodupes_test <- assocstats(race_nodupes_table)
 
 print(race_nodupes_test)
+
+race_nodupes_table_1 <- data.table(race_nodupes_table)
+colnames(race_nodupes_table_1) <- c("race", "readmitted", "N")
+p <- ggplot(race_nodupes_table_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = race, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Readmission status by Race", subtitle = "From single admission data set")
+p <- p + ylab("Number of patients") + xlab("Status")
+p
+
+p <- ggplot(race_nodupes_table_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = race, cumulative = TRUE)) + geom_col() +
+ geom_text(aes(label = paste0(perc*100,"%")), 
+              position = position_stack(vjust = 0.5))
+p <- p + labs(title = "Readmission status by Race Percentage", subtitle = "From single admission data set")
+p <- p + ylab("Percentage of patients") + xlab("Status")
+
+p
 
 ##  Now for the age data
 
 age_nodupes_table <- table(No_duplicated_data$age, No_duplicated_data$readmitted)
 
+colnames(age_nodupes_table ) <- c("re-ad < 30 days", "re-ad > 30 days", "no re-ad")
+
+
+
 age_nodupes_table <- age_nodupes_table[2:10,]
 
-age_nodupes_test <- chisq.test(age_nodupes_table)
+print(age_nodupes_table)
+
+age_nodupes_test <- assocstats(age_nodupes_table)
 
 print(age_nodupes_test)
 
-##  Some plots
+age_nodupes_table_1 <- data.table(age_nodupes_table)
+colnames(age_nodupes_table_1) <- c("age", "readmitted", "N")
+p <- ggplot(age_nodupes_table_1 %>% group_by(readmitted) , aes(x = readmitted, y = N, fill = age, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Readmission status by Age", subtitle = "From single admission data set")
+p <- p + ylab("Number of patients") + xlab("Status")
+p
 
+p <- ggplot(age_nodupes_table_1 %>% group_by(readmitted) %>% mutate(perc = round(N/sum(N),2)), aes(x = readmitted, y = perc, fill = age, cumulative = TRUE)) + geom_col() +
+ geom_text(aes(label = paste0(perc*100,"%")), 
+              position = position_stack(vjust = 0.2), check_overlap = TRUE)
+p <- p + labs(title = "Readmission status by Age Percentage", subtitle = "From single admission data set")
+p <- p + ylab("Percentage of patients") + xlab("Status")
 
+p
+```
+##  Other things to predict - number of procesdures
+
+```{r Weird stuff, eval = TRUE, include = TRUE}
 
 ## remove ? for race
 
+## For only with diabetes in diagnoses 1-3
+
+dog <- diabetes_data
+dog$diag_1 <- as.numeric(dog$diag_1)
+dog$diag_2 <- as.numeric(dog$diag_2)
+dog$diag_3 <- as.numeric(dog$diag_3)
+diabetes_data$x <- dog$diag_1 >= 249 & dog$diag_1 < 251
+diabetes_data$y <- dog$diag_2 >= 249 & dog$diag_2 < 251
+diabetes_data$z <- dog$diag_3 >= 249 & dog$diag_3 < 251
+diabetes_data$xyz <- diabetes_data$x == "TRUE" | diabetes_data$y == "TRUE" | diabetes_data$z == "TRUE"
+
+coded <- diabetes_data[diabetes_data$xyz == "TRUE",]
+dim(coded)
+gender_code <- table(coded$gender, coded$readmitted)
+gender_code <- gender_code[1:2,]
+dim(gender_code)
+print("The gender data is")
+print(assocstats(gender_code))
+
+age_code <- table(coded$age, coded$readmitted)
+print("The age data is ")
+print(assocstats(age_code))
+
+race_code <- table(coded$race, coded$readmitted)
+race_code <- race_code[2:5,]
+
+print("The race data is ")
+print(assocstats(race_code))
+
+coded_first <- diabetes_data[diabetes_data$x == "TRUE",]
+dim(coded_first)
+race_code_first <- table(coded_first$race, coded_first$readmitted)
+race_code_first <- race_code_first[2:5,]
+print("The first diagnosis data is ")
+print(assocstats(race_code_first))
 
 
 
+```
+## A t-test for the data - do males and females have the same mean lenght of stay in the hospital
 
+
+```{r time in hospital , eval = TRUE}
+male_stay <- diabetes_data[diabetes_data$gender =="Male",]
+female_stay <- diabetes_data[diabetes_data$gender == "Female",]
+t.test(male_stay$time_in_hospital, female_stay$time_in_hospital)
+
+tablos <- table(diabetes_data$gender, diabetes_data$time_in_hospital)
+tablos <- tablos[1:2,]
+tablos_1 <- data.table(tablos)
+colnames(tablos_1) <- c("gender", "length_of_stay", "total")
+tablos_1$length_of_stay <- as.numeric(tablos_1$length_of_stay)
+p <- ggplot(tablos_1 %>% group_by(length_of_stay) , aes(x = length_of_stay, y = total, fill = gender, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Length of Stay by Gender",  subtitle = "From full data set", caption = "From full data set")
+p <- p + ylab("Number of patients") + xlab("Days")
+p
+
+q <- ggplot(tablos_1 %>% group_by(length_of_stay) %>% mutate(perc = round(total/sum(total),2)), aes(x = length_of_stay, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
+ geom_text(aes(label = paste0(perc*100,"%")), 
+              position = position_stack(vjust = 0.2), check_overlap = TRUE)
+q <- q + labs(title = "Length of Stay by Gender Percent",  subtitle = "From full data set", caption = "From full data set")
+q <- q + ylab("Percentage") + xlab("Days")
+q
+
+
+
+male_nodupe_stay <- No_duplicated_data[No_duplicated_data$gender == "Male",]
+female_nodupe_stay <- No_duplicated_data[No_duplicated_data$gender == "Female",]         
+t.test(male_nodupe_stay$time_in_hospital, female_nodupe_stay$time_in_hospital)
+
+tablos <- table(No_duplicated_data$gender, No_duplicated_data$time_in_hospital)
+tablos <- tablos[1:2,]
+tablos_1 <- data.table(tablos)
+colnames(tablos_1) <- c("gender", "length_of_stay", "total")
+tablos_1$length_of_stay <- as.numeric(tablos_1$length_of_stay)
+p <- ggplot(tablos_1 %>% group_by(length_of_stay) , aes(x = length_of_stay, y = total, fill = gender, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Length of Stay by Gender",  subtitle = "Single Admission data subset")
+p <- p + ylab("Number of patients") + xlab("Days")
+p
+
+q <- ggplot(tablos_1 %>% group_by(length_of_stay) %>% mutate(perc = round(total/sum(total),2)), aes(x = length_of_stay, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
+ geom_text(aes(label = paste0(perc*100,"%")), 
+              position = position_stack(vjust = 0.2), check_overlap = TRUE)
+q <- q + labs(title = "Length of Stay by Gender Percent",  subtitle = "From single admission data set", caption = "From single admission data set")
+q <- q + ylab("Percentage") + xlab("Days")
+q
+
+male_dupe_stay <- Dupe_diabetes_data[Dupe_diabetes_data$gender == "Male",]
+female_dupe_stay <-Dupe_diabetes_data[Dupe_diabetes_data$gender == "Female",]        
+t.test(male_dupe_stay$time_in_hospital, female_dupe_stay$time_in_hospital)
+
+tablos <- table(Dupe_diabetes_data$gender, Dupe_diabetes_data$time_in_hospital)
+tablos <- tablos[1:2,]
+tablos_1 <- data.table(tablos)
+colnames(tablos_1) <- c("gender", "length_of_stay", "total")
+tablos_1$length_of_stay <- as.numeric(tablos_1$length_of_stay)
+p <- ggplot(tablos_1 %>% group_by(length_of_stay) , aes(x = length_of_stay, y = total, fill = gender, cumulative = TRUE)) + geom_col()
+p <- p + labs(title = "Length of Stay by Gender", subtitle  = "Multiple admissions data set", caption = "Multiple admissions data set")
+p <- p + ylab("Number of patients") + xlab("Days")
+p
+
+q <- ggplot(tablos_1 %>% group_by(length_of_stay) %>% mutate(perc = round(total/sum(total),2)), aes(x = length_of_stay, y = perc, fill = gender, cumulative = TRUE)) + geom_col() +
+ geom_text(aes(label = paste0(perc*100,"%")), 
+              position = position_stack(vjust = 0.2), check_overlap = TRUE)
+q <- q + labs(title = "Length of Stay by Gender Percent",  subtitle = "From multiple admission data set", caption = "From multiple admission data set")
+q <- q + ylab("Percentage") + xlab("Days")
+q
+
+```
+
+## Now to test to see if Medicare patients have differing results
+
+``` {r medicare, eval = TRUE, include = TRUE}
+
+medi <- diabetes_data[diabetes_data$payer_code == "MC",]
+no_medi <- diabetes_data[diabetes_data$payer_code != "MC",]
+total_no_perc <- sum(diabetes_data$readmitted == "NO")/dim(diabetes_data)[1]
+total_lt_30 <- sum(diabetes_data$readmitted == "<30")/dim(diabetes_data)[1]
+total_mt_30 <- sum(diabetes_data$readmitted == ">30")/dim(diabetes_data)[1]
+total_no_medi <- sum(medi$readmitted == "NO")/dim(medi)[1]
+total_lt30_medi <- sum(medi$readmitted == "<30")/dim(medi)[1]
+total_mt30_medi <- sum(medi$readmitted == ">30")/dim(medi)[1]
+total_no_medi_no <- sum(no_medi$readmitted == "NO")/dim(no_medi)[1]
+total_no_medi_lt30 <- sum(no_medi$readmitted == "<30")/dim(no_medi)[1]
+total_no_medi_mt30 <- sum(no_medi$readmitted == ">30")/dim(no_medi)[1]
+frame_it <- data.frame(total_no_perc, total_lt_30, total_mt_30)
+frame_jt <- data.frame(total_no_medi, total_lt30_medi, total_mt30_medi)
+frame_kt <- data.frame(total_no_medi_no, total_no_medi_lt30, total_no_medi_mt30)
+colnames(frame_it) <- c("no_re-ad", "re-ad_lt_30", "re-ad_mt_30")
+colnames(frame_jt) <- c("no_re-ad", "re-ad_lt_30", "re-ad_mt_30")
+colnames(frame_kt) <- c("no_re-ad", "re-ad_lt_30", "re-ad_mt_30")
+framez <- rbind(frame_it, frame_jt, frame_kt)
+framez <- 1000* framez
+chisq.test(framez)
 
 ```
